@@ -18,6 +18,11 @@ import NotificationsPage from "views/Notifications/Notifications.jsx";
 import UpgradeToPro from "views/UpgradeToPro/UpgradeToPro.jsx";
 import Minuta from "views/Minuta/MinutaForm.jsx";
 import MinutaTable from "views/Minuta/MinutaTable.jsx"
+import EmpresaComponent from "../views/Empresa/EmpresaComponent";
+import AsistenteComponent from "../views/Asistente/AsistenteComponent";
+import ProyectoComponent from "../views/Proyecto/ProyectoComponent";
+import MovimientoComponent from "../views/Movimiento/MovimientoComponent";
+import HoraComponent from "../views/Hora/HoraComponent";
 const dashboardRoutes = [
   {
     path: "/minuta",
@@ -32,6 +37,41 @@ const dashboardRoutes = [
     navbarName: "Minuta Tabla",
     icon: Dashboard,
     component: MinutaTable
+  },
+  {
+    path: "/empresa",
+    sidebarName: "ABM Empresa",
+    navbarName: "ABM Empresa",
+    icon: Dashboard,
+    component: EmpresaComponent
+  },
+  {
+    path: "/asistente",
+    sidebarName: "ABM Empleados",
+    navbarName: "ABM Empleados",
+    icon: Dashboard,
+    component: AsistenteComponent
+  },
+  {
+    path: "/proyecto",
+    sidebarName: "ABM Proyecto",
+    navbarName: "ABM Proyecto",
+    icon: Dashboard,
+    component: ProyectoComponent
+  },
+  {
+    path: "/movimiento",
+    sidebarName: "ABM Movimiento",
+    navbarName: "ABM Movimiento",
+    icon: Dashboard,
+    component: MovimientoComponent
+  },
+  {
+    path: "/hora",
+    sidebarName: "ABM Hora",
+    navbarName: "ABM Hora",
+    icon: Dashboard,
+    component: HoraComponent
   },
   {
     path: "/dashboard",

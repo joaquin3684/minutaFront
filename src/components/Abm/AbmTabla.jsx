@@ -32,7 +32,8 @@ class AbmTabla extends React.Component {
 
   static getDerivedStateFromProps(props, state) {
     if (
-      state.rows.some(({ rowData }, i) => rowData !== props.rows[i].rowData)
+      props.rows.length !== state.rows.length ||
+      props.rows.some(({ rowData }, i) => rowData !== state.rows[i].rowData)
     ) {
       let rows = props.rows.map((row, i) => ({
         show: state.rows[i] ? state.rows[i].show : "data",
@@ -40,7 +41,9 @@ class AbmTabla extends React.Component {
       }));
       return { rows };
     }
+    return null
   }
+
   onEdit = row => {
     const newRows = this.state.rows;
     const index = this.state.rows.findIndex(r => r === row);
