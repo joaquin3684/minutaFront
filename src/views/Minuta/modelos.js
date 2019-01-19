@@ -12,3 +12,24 @@ export class Responsabilidad {
     this.id = id;
   }
 }
+export class Minuta {
+  constructor(fecha, motivo, proyecto, descripcion, asistentes, temas) {
+    this.fecha = fecha;
+    this.motivo = motivo;
+    this.descripcion = descripcion;
+    this.asistentes = asistentes;
+    this.temas = temas;
+  }
+}
+
+export class Tema {
+  constructor(titulo, definiciones) {
+    this.titulo = titulo;
+    this.definiciones = definiciones;
+  }
+}
+export class Definicion {
+  constructor(texto) {
+    this.texto = texto;
+  }
+}

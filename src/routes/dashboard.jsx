@@ -17,12 +17,13 @@ import Maps from "views/Maps/Maps.jsx";
 import NotificationsPage from "views/Notifications/Notifications.jsx";
 import UpgradeToPro from "views/UpgradeToPro/UpgradeToPro.jsx";
 import Minuta from "views/Minuta/MinutaForm.jsx";
-import MinutaTable from "views/Minuta/MinutaTable.jsx"
+import MinutaTable from "views/Minuta/MinutaTable.jsx";
 import EmpresaComponent from "../views/Empresa/EmpresaComponent";
 import AsistenteComponent from "../views/Asistente/AsistenteComponent";
 import ProyectoComponent from "../views/Proyecto/ProyectoComponent";
 import MovimientoComponent from "../views/Movimiento/MovimientoComponent";
 import HoraComponent from "../views/Hora/HoraComponent";
+import ProgramadorComponent from "../views/Programador/ProgramadorComponent";
 const dashboardRoutes = [
   {
     path: "/minuta",
@@ -51,6 +52,13 @@ const dashboardRoutes = [
     navbarName: "ABM Empleados",
     icon: Dashboard,
     component: AsistenteComponent
+  },
+  {
+    path: "/programador",
+    sidebarName: "ABM Programadores",
+    navbarName: "ABM Programadores",
+    icon: Dashboard,
+    component: ProgramadorComponent
   },
   {
     path: "/proyecto",

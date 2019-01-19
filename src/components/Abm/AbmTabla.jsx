@@ -41,7 +41,7 @@ class AbmTabla extends React.Component {
       }));
       return { rows };
     }
-    return null
+    return null;
   }
 
   onEdit = row => {
@@ -49,6 +49,9 @@ class AbmTabla extends React.Component {
     const index = this.state.rows.findIndex(r => r === row);
     row.show = row.show === "data" ? "edit" : "data";
     newRows[index] = row;
+    if (row.show === "data") {
+      this.props.onEdit(row.rowData.id);
+    }
     this.setState({ rows: newRows });
   };
 
@@ -58,6 +61,14 @@ class AbmTabla extends React.Component {
 
   onDelete = row => {
     this.props.onDelete(row.rowData.id);
+  };
+
+  onCancelEdit = row => {
+    this.props.onCancelEdit(row.rowData.id);
+    const newRows = this.state.rows;
+    const index = this.state.rows.findIndex(r => r === row);
+    newRows[index].show = "data";
+    this.setState({ rows: newRows });
   };
 
   render() {
@@ -101,7 +112,11 @@ class AbmTabla extends React.Component {
                   .map(({ value }, i) => (
                     <TableCell component="th" scope="row" key={i}>
                       {r.show === "data"
-                        ? r.rowData[value]
+                        ? r.rowData[value] === true
+                          ? "Si"
+                          : r.rowData[value] === false
+                            ? "No"
+                            : r.rowData[value]
                         : r.rowChange[value]}
                     </TableCell>
                   ))
@@ -111,6 +126,7 @@ class AbmTabla extends React.Component {
                       row={r}
                       onEdit={this.onEdit}
                       onDelete={this.onDelete}
+                      onCancelEdit={this.onCancelEdit}
                     />
                   ])}
               </TableRow>
@@ -122,23 +138,20 @@ class AbmTabla extends React.Component {
   }
 }
 
-function AccionesButtons({ row, onEdit, onDelete }) {
+function AccionesButtons({ row, onEdit, onDelete, onCancelEdit }) {
   return (
     <TableCell align="center">
-      <Fab
-        size="small"
-        color="secondary"
-        aria-label="Add"
-        onClick={() => onEdit(row)}
-      >
+      <Fab size="small" color="primary" onClick={() => onEdit(row)}>
         <Icon>edit_icon</Icon>
       </Fab>
-      <Fab
-        size="small"
-        color="secondary"
-        aria-label="Add"
-        onClick={() => onDelete(row)}
-      >
+      {row.show === "edit" ? (
+        <Fab size="small" color="inherit" onClick={() => onCancelEdit(row)}>
+          <Icon>cancel_icon</Icon>
+        </Fab>
+      ) : (
+        ""
+      )}
+      <Fab size="small" color="secondary" onClick={() => onDelete(row)}>
         <Icon>delete_icon</Icon>
       </Fab>
     </TableCell>

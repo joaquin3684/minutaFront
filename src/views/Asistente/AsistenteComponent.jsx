@@ -15,49 +15,79 @@ import Input from "@material-ui/core/Input/Input";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
 import FormControl from "@material-ui/core/FormControl/FormControl";
 import { Asistente } from "./Modelo";
+import * as asistentesSrv from "./httpServiceAsistente";
+import * as empresasSrv from "../Empresa/httpServiceEmpresa";
 
 class AsistenteComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       asistentes: [],
-      empresas: this.getEmpresas(),
+      empresas: [],
       asistente: new Asistente("", "", "", "", new Date().getTime())
     };
   }
 
-  onDelete = (id) => {
-    const asistentes = this.state.asistentes.filter( e => e.id !== id)
-    this.setState({asistentes})
+  componentDidMount() {
+    asistentesSrv
+      .traerTodos()
+      .then(asistentes => this.setState({ asistentes }));
+    empresasSrv.traerTodos().then(empresas => this.setState({ empresas }));
+  }
+
+  onDelete = id => {
+    asistentesSrv.baja(id).then(() => {
+      const asistentes = this.state.asistentes.filter(e => e.id !== id);
+      this.setState({ asistentes });
+    });
   };
 
   onAdd = () => {
-    const asistentes = this.state.asistentes.concat(
-      this.state.asistente
-    );
-    this.setState({ asistentes, asistente: new Asistente("", "", "", "", new Date().getTime())});
+    asistentesSrv.alta(this.state.asistente).then(asistente => {
+      const asistentes = this.state.asistentes.concat(asistente);
+      this.setState({
+        asistentes,
+        asistente: new Asistente("", "", "", "", new Date().getTime())
+      });
+    });
   };
 
-  onEdit = i => field => e => {
-    const asistentes = this.state.asistentes
-    asistentes[i][field] = e.target.value
-    this.setState({asistentes})
+  onChange = i => field => e => {
+    const asistentes = this.state.asistentes;
+    asistentes[i][field] = e.target.value;
+    this.setState({ asistentes });
+  };
+
+  onEdit = id => {
+    const asistente = this.state.asistentes.find(e => e.id === id);
+    asistentesSrv.modificacion(asistente).catch(() => {
+      this.onCancelEdit(asistente.id);
+    });
+  };
+
+  onCancelEdit = id => {
+    asistentesSrv.traerUno(id).then(asistente => {
+      const asistentes = this.state.asistentes;
+      const i = asistentes.findIndex(e => e.id === id);
+      asistentes[i] = asistente;
+      this.setState({ asistentes });
+    });
   };
 
   handleChange = event => {
-    const asistente = this.state.asistente
-    asistente[event.target.name] = event.target.value
-    this.setState({ asistente});
+    const asistente = this.state.asistente;
+    asistente[event.target.name] = event.target.value;
+    this.setState({ asistente });
   };
 
   getEmpresas = () => {
     return [
-      {name: 'Cobertec', id:1},
-      {name: 'Microsoft', id:2},
-      {name: 'IBM', id:3},
-      {name: 'Mutual', id:4},
-    ]
-  }
+      { name: "Cobertec", id: 1 },
+      { name: "Microsoft", id: 2 },
+      { name: "IBM", id: 3 },
+      { name: "Mutual", id: 4 }
+    ];
+  };
 
   render() {
     return (
@@ -71,29 +101,42 @@ class AsistenteComponent extends React.Component {
             <AbmTabla
               onDelete={this.onDelete}
               onAdd={this.onAdd}
-              columns={[{name: "Nombre", value: "nombre"},{name: "Apellido", value: "apellido"},{name: "Mail", value: "mail"}, { name: "Empresa", value: "empresa" }]}
+              onEdit={this.onEdit}
+              onCancelEdit={this.onCancelEdit}
+              columns={[
+                { name: "Nombre", value: "nombre" },
+                { name: "Apellido", value: "apellido" },
+                { name: "Mail", value: "mail" },
+                { name: "Empresa", value: "empresa" }
+              ]}
               rows={this.state.asistentes.map((e, i) => {
                 return {
-                  rowData: { nombre: e.nombre, apellido:e.apellido, mail:e.mail, empresa:e.empresa.name, id: e.id },
+                  rowData: {
+                    nombre: e.nombre,
+                    apellido: e.apellido,
+                    mail: e.mail,
+                    empresa: e.empresa.name,
+                    id: e.id
+                  },
                   rowChange: {
                     nombre: (
                       <TextField
                         label="Nombre"
-                        onChange={this.onEdit(i)("nombre")}
+                        onChange={this.onChange(i)("nombre")}
                         defaultValue={e.nombre}
                       />
                     ),
                     apellido: (
                       <TextField
                         label="Nombre"
-                        onChange={this.onEdit(i)("apellido")}
+                        onChange={this.onChange(i)("apellido")}
                         defaultValue={e.apellido}
                       />
                     ),
                     mail: (
                       <TextField
                         label="Nombre"
-                        onChange={this.onEdit(i)("mail")}
+                        onChange={this.onChange(i)("mail")}
                         defaultValue={e.mail}
                       />
                     ),
@@ -104,7 +147,7 @@ class AsistenteComponent extends React.Component {
                         </InputLabel>
                         <Select
                           value={e.empresa}
-                          onChange={this.onEdit(i)("empresa")}
+                          onChange={this.onChange(i)("empresa")}
                           input={<Input id="select-multiple" />}
                           inputProps={{
                             name: "empresa",
@@ -113,13 +156,12 @@ class AsistenteComponent extends React.Component {
                         >
                           {this.state.empresas.map(empresa => (
                             <MenuItem key={empresa.id} value={empresa}>
-                              {empresa.name}
+                              {empresa.nombre}
                             </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
                     )
-
                   }
                 };
               })}
@@ -150,9 +192,7 @@ class AsistenteComponent extends React.Component {
                 ),
                 empresa: (
                   <FormControl style={{ width: "80%" }}>
-                    <InputLabel htmlFor="select-multiple">
-                      Empresa
-                    </InputLabel>
+                    <InputLabel htmlFor="select-multiple">Empresa</InputLabel>
                     <Select
                       value={this.state.asistente.empresa}
                       onChange={this.handleChange}
@@ -164,7 +204,7 @@ class AsistenteComponent extends React.Component {
                     >
                       {this.state.empresas.map(empresa => (
                         <MenuItem key={empresa.id} value={empresa}>
-                          {empresa.name}
+                          {empresa.nombre}
                         </MenuItem>
                       ))}
                     </Select>

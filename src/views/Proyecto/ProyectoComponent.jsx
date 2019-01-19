@@ -15,28 +15,44 @@ import Input from "@material-ui/core/Input/Input";
 import MenuItem from "@material-ui/core/MenuItem/MenuItem";
 import FormControl from "@material-ui/core/FormControl/FormControl";
 import { Proyecto } from "./Modelo";
+import * as proyectoSrv from "./httpServiceProyecto";
+import * as programadorSrv from "../Programador/httpServiceProgramador";
+import * as empresaSrv from "../Empresa/httpServiceEmpresa";
 
 class ProyectoComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       proyectos: [],
-      empresas: this.getEmpresas(),
-      programadores: this.getProgramadores(),
-      proyecto: new Proyecto("", "", "", "", [], new Date().getTime())
+      empresas: [],
+      programadores: [],
+      proyecto: new Proyecto()
     };
   }
 
+  componentDidMount() {
+    proyectoSrv.traerTodos().then(proyectos => this.setState({ proyectos }));
+    programadorSrv
+      .traerTodos()
+      .then(programadores => this.setState({ programadores }));
+    empresaSrv.traerTodos().then(empresas => this.setState({ empresas }));
+  }
+
   onDelete = id => {
-    const proyectos = this.state.proyectos.filter(e => e.id !== id);
-    this.setState({ proyectos });
+    proyectoSrv.baja(id).then(() => {
+      const proyectos = this.state.proyectos.filter(e => e.id !== id);
+      this.setState({ proyectos });
+    });
   };
 
   onAdd = () => {
-    const proyectos = this.state.proyectos.concat(this.state.proyecto);
-    this.setState({
-      proyectos,
-      proyecto: new Proyecto("", "", "", "", [], new Date().getTime())
+    console.log(this.state.proyecto);
+    proyectoSrv.alta(this.state.proyecto).then(newProyecto => {
+      const proyectos = this.state.proyectos.concat(newProyecto);
+      this.setState({
+        proyectos,
+        proyecto: new Proyecto()
+      });
     });
   };
 
@@ -52,22 +68,26 @@ class ProyectoComponent extends React.Component {
     this.setState({ proyecto });
   };
 
-  getEmpresas = () => {
-    return [
-      { name: "Cobertec", id: 1 },
-      { name: "Microsoft", id: 2 },
-      { name: "IBM", id: 3 },
-      { name: "Mutual", id: 4 }
-    ];
+  onChange = i => field => e => {
+    const proyectos = this.state.proyectos;
+    proyectos[i][field] = e.target.value;
+    this.setState({ proyectos });
   };
 
-  getProgramadores = () => {
-    return [
-      { name: "Lucas Blanco", id: 1 },
-      { name: "Mazoud Joaquin", id: 2 },
-      { name: "Juan Accinelli", id: 3 },
-      { name: "Federico Hombre", id: 4 }
-    ];
+  onEdit = id => {
+    const proyecto = this.state.proyectos.find(e => e.id === id);
+    proyectoSrv.modificacion(proyecto).catch(() => {
+      this.onCancelEdit(proyecto.id);
+    });
+  };
+
+  onCancelEdit = id => {
+    proyectoSrv.traerUno(id).then(proyecto => {
+      const proyectos = this.state.proyectos;
+      const i = proyectos.findIndex(e => e.id === id);
+      proyectos[i] = proyecto;
+      this.setState({ proyectos });
+    });
   };
 
   render() {
@@ -82,6 +102,8 @@ class ProyectoComponent extends React.Component {
             <AbmTabla
               onDelete={this.onDelete}
               onAdd={this.onAdd}
+              onEdit={this.onEdit}
+              onCancelEdit={this.onCancelEdit}
               columns={[
                 { name: "Nombre", value: "nombre" },
                 { name: "Empresa", value: "empresa" },
@@ -91,7 +113,7 @@ class ProyectoComponent extends React.Component {
               ]}
               rows={this.state.proyectos.map((e, i) => {
                 let programadoresData = e.programadores
-                  .map(r => r.name)
+                  .map(r => r.nombre)
                   .join(",");
 
                 return {
@@ -99,7 +121,7 @@ class ProyectoComponent extends React.Component {
                     nombre: e.nombre,
                     horasPresupuestadas: e.horasPresupuestadas,
                     fechaLimite: e.fechaLimite,
-                    empresa: e.empresa.name,
+                    empresa: e.empresa.nombre,
                     programadores: programadoresData,
                     id: e.id
                   },
@@ -107,14 +129,14 @@ class ProyectoComponent extends React.Component {
                     nombre: (
                       <TextField
                         label="Nombre"
-                        onChange={this.onEdit(i)("nombre")}
+                        onChange={this.onChange(i)("nombre")}
                         defaultValue={e.nombre}
                       />
                     ),
                     horasPresupuestadas: (
                       <TextField
                         label="Horas presup."
-                        onChange={this.onEdit(i)("horasPresupuestadas")}
+                        onChange={this.onChange(i)("horasPresupuestadas")}
                         defaultValue={e.horasPresupuestadas}
                         type="number"
                       />
@@ -122,7 +144,7 @@ class ProyectoComponent extends React.Component {
                     fechaLimite: (
                       <TextField
                         label="Fecha lim."
-                        onChange={this.onEdit(i)("fechaLimite")}
+                        onChange={this.onChange(i)("fechaLimite")}
                         defaultValue={e.fechaLimite}
                         type="date"
                       />
@@ -134,7 +156,7 @@ class ProyectoComponent extends React.Component {
                         </InputLabel>
                         <Select
                           value={e.empresa}
-                          onChange={this.onEdit(i)("empresa")}
+                          onChange={this.onChange(i)("empresa")}
                           input={<Input id="select-multiple" />}
                           inputProps={{
                             name: "empresa",
@@ -143,7 +165,7 @@ class ProyectoComponent extends React.Component {
                         >
                           {this.state.empresas.map(empresa => (
                             <MenuItem key={empresa.id} value={empresa}>
-                              {empresa.name}
+                              {empresa.nombre}
                             </MenuItem>
                           ))}
                         </Select>
@@ -157,7 +179,7 @@ class ProyectoComponent extends React.Component {
                         <Select
                           multiple
                           value={e.programadores}
-                          onChange={this.onEdit(i)("programadores")}
+                          onChange={this.onChange(i)("programadores")}
                           input={<Input id="select-multiple" />}
                           inputProps={{
                             name: "programadores",
@@ -166,7 +188,7 @@ class ProyectoComponent extends React.Component {
                         >
                           {this.state.programadores.map(programador => (
                             <MenuItem key={programador.id} value={programador}>
-                              {programador.name}
+                              {programador.nombre}
                             </MenuItem>
                           ))}
                         </Select>
@@ -216,7 +238,7 @@ class ProyectoComponent extends React.Component {
                     >
                       {this.state.empresas.map(empresa => (
                         <MenuItem key={empresa.id} value={empresa}>
-                          {empresa.name}
+                          {empresa.nombre}
                         </MenuItem>
                       ))}
                     </Select>
@@ -239,7 +261,7 @@ class ProyectoComponent extends React.Component {
                     >
                       {this.state.programadores.map(programador => (
                         <MenuItem key={programador.id} value={programador}>
-                          {programador.name}
+                          {programador.nombre}
                         </MenuItem>
                       ))}
                     </Select>

@@ -1,7 +1,6 @@
 import React from "react";
 // @material-ui/core components
 import withStyles from "@material-ui/core/styles/withStyles";
-import axios from "axios";
 import * as moment from "moment";
 // core components
 import GridItem from "components/Grid/GridItem.jsx";
@@ -15,10 +14,11 @@ import CardFooter from "components/Card/CardFooter.jsx";
 import customInputStyle from "assets/jss/material-dashboard-react/components/customInputStyle.jsx";
 
 import MinutaTable from "./MinutaTable";
-import { Responsabilidad, Responsable } from "./modelos";
+import { Responsabilidad, Responsable, Minuta } from "./modelos";
 import MinutaStepper from "./MinutaStepper";
 import MinutaDetalles from "./MinutaDetalles";
 import MinutaTemas from "./MinutaTemas";
+import * as httpService from "./httpServiceMinuta";
 
 class MinutaForm extends React.Component {
   constructor(props) {
@@ -124,6 +124,20 @@ class MinutaForm extends React.Component {
 
   handleChangeStep = step => {
     this.setState({ activeStep: step });
+  };
+
+  altaMinuta = () => {
+    const {
+      fecha,
+      motivo,
+      proyecto,
+      descripcion,
+      asistentes,
+      temas
+    } = this.state;
+    httpService.alta(
+      new Minuta(fecha, motivo, proyecto, descripcion, asistentes, temas)
+    );
   };
   render() {
     let step = null;
